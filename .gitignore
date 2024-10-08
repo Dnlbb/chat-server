@@ -2,3 +2,4 @@
 /bin/protoc-gen-go-grpc
 /bin/protoc-gen-go
 /bin
+.idea/
