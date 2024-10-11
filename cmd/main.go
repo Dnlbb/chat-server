@@ -17,6 +17,7 @@ type server struct {
 
 func (s *server) Create(_ context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
 	log.Printf("Users: %v", req.GetUsernames())
+
 	return &desc.CreateResponse{}, nil
 }
 
