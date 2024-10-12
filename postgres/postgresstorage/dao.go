@@ -10,6 +10,7 @@ import (
 	"os"
 )
 
+// PostgresStorage структура с базой
 type PostgresStorage struct {
 	con pgx.Conn
 }
