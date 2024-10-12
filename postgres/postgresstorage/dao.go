@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	sq "github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v4"
 	"log"
 	"os"
+
+	sq "github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v4"
 )
 
 // PostgresStorage структура с базой
