@@ -2,13 +2,13 @@ package postgresstorage
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v4"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
 // PostgresStorage структура с базой
@@ -37,25 +37,16 @@ func (s *PostgresStorage) CloseCon() {
 // Затем добавляем всех переданных пользователей в чат, в случае если мы попытаемся добавить пользователя, которого не
 // существует, данный пользователь не будет добавлен и мы перейдем к следующему. Связь пользователей и чатов осуществляется через таблицу
 // ChatUsers связью многие ко многим.
-func (s *PostgresStorage) CreateChat(users Users) (*ChatID, error) {
-	var chatID ChatID
+func (s *PostgresStorage) CreateChat(users IDs) (*int64, error) {
+	var chatID int64
 
-	err := s.con.QueryRow(context.Background(), "INSERT INTO Chats DEFAULT VALUES RETURNING id").Scan(&chatID)
+	err := s.con.QueryRow(context.Background(), "INSERT INTO chat_service.chats DEFAULT VALUES RETURNING id").Scan(&chatID)
 	if err != nil {
-		log.Println("Ошибка при создании записи чата в таблице Chats", err)
-		return nil, err
+		return nil, fmt.Errorf("error when creating a chat record in the Chats table: %w", err)
 	}
-	queryBuilder := sq.Insert("ChatUsers").Columns("chat_id", "user_id")
+	queryBuilder := sq.Insert("chat2users").Columns("chat_id", "user_id")
 
-	for _, username := range users {
-		var userID int64
-		err := s.con.QueryRow(context.Background(), "SELECT id FROM Users WHERE username = $1", username).Scan(&userID)
-		if errors.Is(err, pgx.ErrNoRows) {
-			log.Println("Пользователя которого пытаются добавить в чат не существует", err)
-		} else if err != nil {
-			log.Println("Ошибка при попытке получить id пользователя из таблицы Users")
-			return nil, err
-		}
+	for _, userID := range users {
 		queryBuilder = queryBuilder.Values(userID, chatID)
 	}
 
@@ -63,11 +54,11 @@ func (s *PostgresStorage) CreateChat(users Users) (*ChatID, error) {
 
 	sqlStr, args, err := queryBuilder.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при формировании запроса: %w", err)
+		return nil, fmt.Errorf("error when forming the request: %w", err)
 	}
 	_, err = s.con.Exec(context.Background(), sqlStr, args...)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при выполнении запроса: %w", err)
+		return nil, fmt.Errorf("error when executing the request: %w", err)
 	}
 
 	log.Printf("Создан чат с id: %d . В него добавлены пользователи: %+v", chatID, users)
@@ -75,11 +66,10 @@ func (s *PostgresStorage) CreateChat(users Users) (*ChatID, error) {
 }
 
 // DeleteChat удаление чата по id из таблицы Chats
-func (s *PostgresStorage) DeleteChat(chatID ChatID) error {
-	_, err := s.con.Exec(context.Background(), "UPDATE Chats SET is_deleted = TRUE WHERE id = $1", chatID)
+func (s *PostgresStorage) DeleteChat(chatID int64) error {
+	_, err := s.con.Exec(context.Background(), "UPDATE chat_service.chats SET is_deleted = TRUE WHERE id = $1", chatID)
 	if err != nil {
-		log.Println("Ошибка при удалении чата:", err)
-		return err
+		return fmt.Errorf("error when deleting a chat: %w", err)
 	}
 
 	log.Printf("Чат с id: %d успешно удален", chatID)
@@ -91,25 +81,17 @@ func (s *PostgresStorage) SendMessageChat(message Message) error {
 	// Для начала проверяем статус чата (удален или нет), потом уже отправляем в него сообщение.
 	var chatIsDeleted bool
 
-	err := s.con.QueryRow(context.Background(), "SELECT is_deleted FROM Chats WHERE id = $1", message.ChatID).Scan(&chatIsDeleted)
+	err := s.con.QueryRow(context.Background(), "SELECT is_deleted FROM chat_service.chats WHERE id = $1", message.ChatID).Scan(&chatIsDeleted)
 	if err != nil {
-		log.Println("Ошибка при проверке состояния чата", err)
-		return err
+		return fmt.Errorf("error checking the chat status: %w", err)
 	}
 
 	if chatIsDeleted {
-		return fmt.Errorf("невозможно отправить сообщение в удалённый чат с id: %d", message.ChatID)
+		return fmt.Errorf("error, it is not possible to send a message to a remote chat with an id: %d", message.ChatID)
 	}
 	var userID int64
 
-	err = s.con.QueryRow(context.Background(), "SELECT id FROM Users WHERE username = $1", message.From).Scan(&userID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		log.Println("Пользователь, который пытается написать сообщение не существует", err)
-	} else if err != nil {
-		log.Println("Ошибка при попытке получения id пользователя из бд")
-		return err
-	}
-	_, err = s.con.Exec(context.Background(), "INSERT INTO Messages (chat_id, from_user_id, text, timestamp ) VALUES ($1, $2, $3, $4)", message.ChatID, userID, message.Body, message.Time)
+	_, err = s.con.Exec(context.Background(), "INSERT INTO chat_service.messages (chat_id, from_user_id, text, timestamp ) VALUES ($1, $2, $3, $4)", message.ChatID, userID, message.Body, message.Time)
 	if err != nil {
 		log.Println("Ошибка при отправке запроса на добавление сообщения в таблицу Messages")
 	}

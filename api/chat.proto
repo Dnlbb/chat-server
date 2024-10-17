@@ -9,7 +9,7 @@ import "google/protobuf/empty.proto";
 option go_package = "github.com/Dnlbb/auth/pkg/chat;chat";
 
 
-service shat {
+service chat {
     rpc Create (CreateRequest) returns (CreateResponse);
     rpc Delete (DeleteRequest) returns (google.protobuf.Empty);
     rpc SendMessage (SendMessageRequest) returns (google.protobuf.Empty);
