@@ -31,7 +31,9 @@ func main() {
 
 	s := grpc.NewServer()
 	reflection.Register(s)
-	desc.RegisterShatServer(s, &server{authClient: authClient})
+	storage := postgresstorage.InitPostgresStorage()
+	desc.RegisterShatServer(s, &server{authClient: authClient,
+		storage: storage})
 
 	log.Printf("Cервер запущен на  %v", lis.Addr())
 
