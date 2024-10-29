@@ -1,5 +1,5 @@
 #!/bin/bash
-source ../auth.env
+source ../chat.env
 
 
 where migrations

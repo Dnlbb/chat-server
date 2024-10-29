@@ -9,7 +9,7 @@ import (
 // LoadEnv загружаем переменные окружения из файла chat.env в окружение проекта.
 func LoadEnv(path2env string) error {
 	if err := godotenv.Load(path2env); err != nil {
-		return fmt.Errorf("error loading auth.env file: %w, path to env: %s", err, path2env)
+		return fmt.Errorf("error loading chat.env file: %w, path to env: %s", err, path2env)
 	}
 
 	return nil
