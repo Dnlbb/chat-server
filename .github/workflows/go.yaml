@@ -45,17 +45,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Create .env file
+      - name: Create chat.env file
         run: |
-          mkdir -p ./postgres 
-          touch ./postgres/.env
-          echo "PG_DATABASE_NAME=${{ secrets.PG_DATABASE_NAME }}" >> ./postgres/.env
-          echo "PG_USER=${{ secrets.PG_USER }}" >> ./postgres/.env
-          echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> ./postgres/.env
-          echo "PG_PORT=${{ secrets.PG_PORT }}" >> ./postgres/.env
-          echo "DB_HOST=postgres-auth" >> ./postgres/.env
-          echo "MIGRATION_DIR=./migrations" >> ./postgres/.env
-          echo "DSN=host=${{ secrets.SERVER_POSTGRE_HOST }} port=${{ secrets.PG_PORT }} dbname=${{ secrets.PG_DATABASE_NAME }} user=${{ secrets.PG_USER }} password=${{ secrets.PG_PASSWORD }} sslmode=disable" >>  ./postgres/.env
+          touch chat.env
+          echo "PG_DATABASE_NAME=${{ secrets.PG_DATABASE_NAME }}" >> chat.env
+          echo "PG_USER=${{ secrets.PG_USER }}" >> chat.env
+          echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> chat.env
+          echo "PG_PORT=${{ secrets.PG_PORT }}" >> chat.env
+          echo "DB_HOST=postgres-chat" >> chat.env
+          echo "MIGRATION_DIR=./migrations" >> chat.env
+          echo "DSN=host=${{ secrets.SERVER_POSTGRE_HOST }} port=${{ secrets.PG_PORT }} dbname=${{ secrets.PG_DATABASE_NAME }} user=${{ secrets.PG_USER }} password=${{ secrets.PG_PASSWORD }} sslmode=disable" >>  chat.env
 
 
       - name: Set up Docker Buildx
@@ -78,7 +77,7 @@ jobs:
       - name: Deploy to Selectel Cloud via SSH action
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.SERVER_CHAT_HOST }}
+          host: ${{ secrets.SERVER_AUTH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
@@ -99,17 +98,16 @@ jobs:
       - name: Log in to Docker Hub
         run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login -u ${{ secrets.REGISTRY_USERNAME }} ${{ secrets.REGISTRY }} --password-stdin
 
-      - name: Create .env file
+      - name: Create chat.env file
         run: |
-          mkdir -p ./postgres 
-          touch ./postgres/.env
-          echo "PG_DATABASE_NAME=${{ secrets.PG_DATABASE_NAME }}" >> ./postgres/.env
-          echo "PG_USER=${{ secrets.PG_USER }}" >> ./postgres/.env
-          echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> ./postgres/.env
-          echo "PG_PORT=${{ secrets.PG_PORT }}" >> ./postgres/.env
-          echo "DB_HOST=postgres-auth" >> ./postgres/.env
-          echo "MIGRATION_DIR=./migrations" >> ./postgres/.env
-          echo "DSN=postgres-auth port=${{ secrets.PG_PORT }} dbname=${{ secrets.PG_DATABASE_NAME }} user=${{ secrets.PG_USER }} password=${{ secrets.PG_PASSWORD }} sslmode=disable" >>  ./postgres/.env
+          touch chat.env
+          echo "PG_DATABASE_NAME=${{ secrets.PG_DATABASE_NAME }}" >> chat.env
+          echo "PG_USER=${{ secrets.PG_USER }}" >> chat.env
+          echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> chat.env
+          echo "PG_PORT=${{ secrets.PG_PORT }}" >> chat.env
+          echo "DB_HOST=postgres-auth" >> chat.env
+          echo "MIGRATION_DIR=./migrations" >> chat.env
+          echo "DSN=postgres-chat port=${{ secrets.PG_PORT }} dbname=${{ secrets.PG_DATABASE_NAME }} user=${{ secrets.PG_USER }} password=${{ secrets.PG_PASSWORD }} sslmode=disable" >>  chat.env
 
       - name: Build the migrator image
         run: |
@@ -155,15 +153,15 @@ jobs:
             
             
             
-            mkdir -p ./postgres  
-            touch ./postgres/.env
-            echo "PG_DATABASE_NAME=${{ secrets.PG_DATABASE_NAME }}" >> ./postgres/.env
-            echo "PG_USER=${{ secrets.PG_USER }}" >> ./postgres/.env
-            echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> ./postgres/.env
-            echo "PG_PORT=${{ secrets.PG_PORT }}" >> ./postgres/.env
-            echo "DB_HOST=postgres-auth" >> ./postgres/.env
-            echo "MIGRATION_DIR=./migrations" >> ./postgres/.env
-            echo "DSN=postgres-auth port=${{ secrets.PG_PORT }} dbname=${{ secrets.PG_DATABASE_NAME }} user=${{ secrets.PG_USER }} password=${{ secrets.PG_PASSWORD }} sslmode=disable" >>  ./postgres/.env
+            
+            touch chat.env
+            echo "PG_DATABASE_NAME=${{ secrets.PG_DATABASE_NAME }}" >> chat.env
+            echo "PG_USER=${{ secrets.PG_USER }}" >> chat.env
+            echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> chat.env
+            echo "PG_PORT=${{ secrets.PG_PORT }}" >> chat.env
+            echo "DB_HOST=postgres-chat" >> chat.env
+            echo "MIGRATION_DIR=./migrations" >> chat.env
+            echo "DSN=postgres-chat port=${{ secrets.PG_PORT }} dbname=${{ secrets.PG_DATABASE_NAME }} user=${{ secrets.PG_USER }} password=${{ secrets.PG_PASSWORD }} sslmode=disable" >>  chat.env
             
             
             docker stop db_migrator || true
@@ -172,5 +170,5 @@ jobs:
             
             docker run --rm --name db_migrator \
               --network my_network \
-              --env-file .env \
+              --env-file auth.env \
               ${{ secrets.REGISTRY }}/migrator:latest
