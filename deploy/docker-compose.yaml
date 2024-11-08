@@ -1,0 +1,25 @@
+volumes:
+  postgres_volume:
+
+
+services:
+  postgres-chat:
+    container_name: postgres_container_chat
+    image: postgres:17.0-alpine3.20
+    ports:
+      - "54321:5432"
+    volumes:
+      - postgres_volume:/var/lib/postgresql/chat
+    env_file:
+      - "../chat.env"
+
+  migrator:
+    build:
+      context: ..
+      dockerfile: ./deploy/migration.Dockerfile
+    restart: on-failure
+    environment:
+      DB_HOST: postgres-chat
+    env_file:
+      - "../chat.env"
+

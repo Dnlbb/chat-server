@@ -3,3 +3,5 @@
 /bin/protoc-gen-go
 /bin
 .idea/
+
+chat.env

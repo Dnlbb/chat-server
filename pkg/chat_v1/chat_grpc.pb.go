@@ -8,6 +8,7 @@ package chat
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -19,158 +20,158 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// ShatClient is the client API for Shat service.
+// ChatClient is the client API for Chat service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ShatClient interface {
+type ChatClient interface {
 	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
-type shatClient struct {
+type chatClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewShatClient(cc grpc.ClientConnInterface) ShatClient {
-	return &shatClient{cc}
+func NewChatClient(cc grpc.ClientConnInterface) ChatClient {
+	return &chatClient{cc}
 }
 
-func (c *shatClient) Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error) {
+func (c *chatClient) Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error) {
 	out := new(CreateResponse)
-	err := c.cc.Invoke(ctx, "/api.shat/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.chat/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shatClient) Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *chatClient) Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/api.shat/Delete", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.chat/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shatClient) SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *chatClient) SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/api.shat/SendMessage", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.chat/SendMessage", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ShatServer is the server API for Shat service.
-// All implementations must embed UnimplementedShatServer
+// ChatServer is the server API for Chat service.
+// All implementations must embed UnimplementedChatServer
 // for forward compatibility
-type ShatServer interface {
+type ChatServer interface {
 	Create(context.Context, *CreateRequest) (*CreateResponse, error)
 	Delete(context.Context, *DeleteRequest) (*emptypb.Empty, error)
 	SendMessage(context.Context, *SendMessageRequest) (*emptypb.Empty, error)
-	mustEmbedUnimplementedShatServer()
+	mustEmbedUnimplementedChatServer()
 }
 
-// UnimplementedShatServer must be embedded to have forward compatible implementations.
-type UnimplementedShatServer struct {
+// UnimplementedChatServer must be embedded to have forward compatible implementations.
+type UnimplementedChatServer struct {
 }
 
-func (UnimplementedShatServer) Create(context.Context, *CreateRequest) (*CreateResponse, error) {
+func (UnimplementedChatServer) Create(context.Context, *CreateRequest) (*CreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-func (UnimplementedShatServer) Delete(context.Context, *DeleteRequest) (*emptypb.Empty, error) {
+func (UnimplementedChatServer) Delete(context.Context, *DeleteRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
-func (UnimplementedShatServer) SendMessage(context.Context, *SendMessageRequest) (*emptypb.Empty, error) {
+func (UnimplementedChatServer) SendMessage(context.Context, *SendMessageRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
 }
-func (UnimplementedShatServer) mustEmbedUnimplementedShatServer() {}
+func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 
-// UnsafeShatServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ShatServer will
+// UnsafeChatServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ChatServer will
 // result in compilation errors.
-type UnsafeShatServer interface {
-	mustEmbedUnimplementedShatServer()
+type UnsafeChatServer interface {
+	mustEmbedUnimplementedChatServer()
 }
 
-func RegisterShatServer(s grpc.ServiceRegistrar, srv ShatServer) {
-	s.RegisterService(&Shat_ServiceDesc, srv)
+func RegisterChatServer(s grpc.ServiceRegistrar, srv ChatServer) {
+	s.RegisterService(&Chat_ServiceDesc, srv)
 }
 
-func _Shat_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Chat_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShatServer).Create(ctx, in)
+		return srv.(ChatServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.shat/Create",
+		FullMethod: "/api.chat/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShatServer).Create(ctx, req.(*CreateRequest))
+		return srv.(ChatServer).Create(ctx, req.(*CreateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Shat_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Chat_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShatServer).Delete(ctx, in)
+		return srv.(ChatServer).Delete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.shat/Delete",
+		FullMethod: "/api.chat/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShatServer).Delete(ctx, req.(*DeleteRequest))
+		return srv.(ChatServer).Delete(ctx, req.(*DeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Shat_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Chat_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SendMessageRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShatServer).SendMessage(ctx, in)
+		return srv.(ChatServer).SendMessage(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.shat/SendMessage",
+		FullMethod: "/api.chat/SendMessage",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShatServer).SendMessage(ctx, req.(*SendMessageRequest))
+		return srv.(ChatServer).SendMessage(ctx, req.(*SendMessageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Shat_ServiceDesc is the grpc.ServiceDesc for Shat service.
+// Chat_ServiceDesc is the grpc.ServiceDesc for Chat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Shat_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.shat",
-	HandlerType: (*ShatServer)(nil),
+var Chat_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.chat",
+	HandlerType: (*ChatServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Create",
-			Handler:    _Shat_Create_Handler,
+			Handler:    _Chat_Create_Handler,
 		},
 		{
 			MethodName: "Delete",
-			Handler:    _Shat_Delete_Handler,
+			Handler:    _Chat_Delete_Handler,
 		},
 		{
 			MethodName: "SendMessage",
-			Handler:    _Shat_SendMessage_Handler,
+			Handler:    _Chat_SendMessage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

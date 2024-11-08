@@ -9,7 +9,7 @@ import "google/protobuf/empty.proto";
 option go_package = "github.com/Dnlbb/auth/pkg/chat;chat";
 
 
-service shat {
+service chat {
     rpc Create (CreateRequest) returns (CreateResponse);
     rpc Delete (DeleteRequest) returns (google.protobuf.Empty);
     rpc SendMessage (SendMessageRequest) returns (google.protobuf.Empty);
@@ -30,8 +30,10 @@ message DeleteRequest {
 }
 
 message SendMessageRequest {
-    string from = 1;
-    string text = 2;
-    google.protobuf.Timestamp timestamp = 3;
+    int64 chatID = 1;
+    string fromUname = 2;
+    int64 fromUid = 3;
+    string body = 4;
+    google.protobuf.Timestamp time = 5;
 }
 

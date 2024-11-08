@@ -10,22 +10,21 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-        - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-        - name: Set up Go
-          uses: actions/setup-go@v5
-          with:
-            go-version: '1.22'
-            cache-dependency-path: go.sum
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: go.sum
 
-        - name: Build
-          run: go build -o ./bin/ -v ./...
+      - name: Build
+        run: go build -o ./bin/ -v ./...
 
-        - name: Test
-          run: go test -v ./...
+      - name: Test
+        run: go test -v ./...
 
   linter:
-    name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,32 +35,140 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          # Require: The version of golangci-lint to use.
-          # When `install-mode` is `binary` (default) the value can be v1.2 or v1.2.3 or `latest` to use the latest version.
-          # When `install-mode` is `goinstall` the value can be v1.2.3, `latest`, or the hash of a commit.
           version: v1.60
-
-          # Optional: working directory, useful for monorepos
-          # working-directory: somedir
-
-          # Optional: golangci-lint command line arguments.
-          #
-          # Note: By default, the `.golangci.yml` file should be at the root of the repository.
-          # The location of the configuration file can be changed by using `--config=`
           args: --timeout=30m --config=./.golangci.pipeline.yaml
 
-          # Optional: show only new issues if it's a pull request. The default value is `false`.
-          # only-new-issues: true
+  image-build-and-push:
+    if: false
+    runs-on: ubuntu-latest
+    needs: [ build-and-test, linter ]
+    steps:
+      - uses: actions/checkout@v3
 
-          # Optional: if set to true, then all caching functionality will be completely disabled,
-          #           takes precedence over all other caching options.
-          # skip-cache: true
+      - name: Create chat.env file
+        run: |
+          touch chat.env
+          echo "PG_DATABASE_NAME=${{ secrets.PG_DATABASE_NAME }}" >> chat.env
+          echo "PG_USER=${{ secrets.PG_USER }}" >> chat.env
+          echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> chat.env
+          echo "PG_PORT=${{ secrets.PG_PORT }}" >> chat.env
+          echo "DB_HOST=postgres-chat" >> chat.env
+          echo "MIGRATION_DIR=./migrations" >> chat.env
+          echo "DSN=host=${{ secrets.SERVER_POSTGRE_HOST }} port=${{ secrets.PG_PORT }} dbname=${{ secrets.PG_DATABASE_NAME }} user=${{ secrets.PG_USER }} password=${{ secrets.PG_PASSWORD }} sslmode=disable" >>  chat.env
 
-          # Optional: if set to true, then the action won't cache or restore ~/go/pkg.
-          # skip-pkg-cache: true
 
-          # Optional: if set to true, then the action won't cache or restore ~/.cache/go-build.
-          # skip-build-cache: true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-          # Optional: The mode to install golangci-lint. It can be 'binary' or 'goinstall'.
-          # install-mode: "goinstall"
+      - name: Login to Docker Registry
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login -u ${{ secrets.REGISTRY_USERNAME }} ${{ secrets.REGISTRY }} --password-stdin
+
+      - name: Build and Push Docker Image
+        run: |
+          TAG_NAME=$(echo $GITHUB_SHA | head -c7)
+          docker buildx create --use
+          docker buildx build --no-cache --push --tag ${{ secrets.REGISTRY }}/${{ secrets.IMAGE_NAME }}:$TAG_NAME -f Dockerfile .
+
+  deploy-image:
+    if: false
+    runs-on: ubuntu-latest
+    needs: [ image-build-and-push, build-and-push-migrator, deploy-postgres ]
+    steps:
+      - name: Deploy to Selectel Cloud via SSH action
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_AUTH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          envs: IMAGE_NAME,REGISTRY,GITHUB_SHA,CONTAINER_NAME
+          script: |
+            TAG_NAME=$(echo $GITHUB_SHA | head -c7)
+            echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login -u ${{ secrets.REGISTRY_USERNAME }} ${{ secrets.REGISTRY }} --password-stdin
+            docker stop ${{ secrets.CONTAINER_NAME }} || true
+            docker rm ${{ secrets.CONTAINER_NAME }} || true
+            docker run -d -p 50051:50051 --name ${{ secrets.CONTAINER_NAME }} -t ${{ secrets.REGISTRY }}/${{ secrets.IMAGE_NAME }}:$TAG_NAME
+
+  build-and-push-migrator:
+    if: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login -u ${{ secrets.REGISTRY_USERNAME }} ${{ secrets.REGISTRY }} --password-stdin
+
+      - name: Create chat.env file
+        run: |
+          touch chat.env
+          echo "PG_DATABASE_NAME=${{ secrets.PG_DATABASE_NAME }}" >> chat.env
+          echo "PG_USER=${{ secrets.PG_USER }}" >> chat.env
+          echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> chat.env
+          echo "PG_PORT=${{ secrets.PG_PORT }}" >> chat.env
+          echo "DB_HOST=postgres-auth" >> chat.env
+          echo "MIGRATION_DIR=./migrations" >> chat.env
+          echo "DSN=postgres-chat port=${{ secrets.PG_PORT }} dbname=${{ secrets.PG_DATABASE_NAME }} user=${{ secrets.PG_USER }} password=${{ secrets.PG_PASSWORD }} sslmode=disable" >>  chat.env
+
+      - name: Build the migrator image
+        run: |
+          docker build --build-arg DB_USER=${{ secrets.DB_USER }} \
+                       --build-arg DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+                       --build-arg DB_NAME=${{ secrets.DB_NAME }} \
+                       -t ${{ secrets.REGISTRY }}/migrator:latest -f ./postgres/migration.Dockerfile .
+
+      - name: Push the migrator image
+        run: docker push ${{ secrets.REGISTRY }}/migrator:latest
+
+  deploy-postgres:
+    if: false
+    runs-on: ubuntu-latest
+    needs: [build-and-push-migrator]
+    steps:
+      - name: Deploy PostgreSQL and run migrations on remote server
+        uses: appleboy/ssh-action@master
+        with:
+          debug: true
+          host: ${{ secrets.SERVER_POSTGRE_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          port: 22
+          script: |
+            docker volume create postgres_volume || true
+            docker stop postgres-chat || true
+            docker rm postgres-chat || true
+
+            docker run -d --name postgres-chat \
+              --network my_network \
+              -e POSTGRES_DB=${{ secrets.PG_DATABASE_NAME }} \
+              -e POSTGRES_USER=${{ secrets.PG_USER }} \
+              -e POSTGRES_PASSWORD=${{ secrets.PG_PASSWORD }} \
+              -v postgres_volume:/var/lib/postgresql/chat \
+              -p ${{ secrets.PG_PORT }}:5432 \
+              postgres:17.0-alpine3.20
+
+            sleep 10
+
+            echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login -u ${{ secrets.REGISTRY_USERNAME }} ${{ secrets.REGISTRY }} --password-stdin
+            
+            
+            
+            
+            touch chat.env
+            echo "PG_DATABASE_NAME=${{ secrets.PG_DATABASE_NAME }}" >> chat.env
+            echo "PG_USER=${{ secrets.PG_USER }}" >> chat.env
+            echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> chat.env
+            echo "PG_PORT=${{ secrets.PG_PORT }}" >> chat.env
+            echo "DB_HOST=postgres-chat" >> chat.env
+            echo "MIGRATION_DIR=./migrations" >> chat.env
+            echo "DSN=postgres-chat port=${{ secrets.PG_PORT }} dbname=${{ secrets.PG_DATABASE_NAME }} user=${{ secrets.PG_USER }} password=${{ secrets.PG_PASSWORD }} sslmode=disable" >>  chat.env
+            
+            
+            docker stop db_migrator || true
+            docker rm db_migrator || true
+            
+            
+            docker run --rm --name db_migrator \
+              --network my_network \
+              --env-file auth.env \
+              ${{ secrets.REGISTRY }}/migrator:latest
