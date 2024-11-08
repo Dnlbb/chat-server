@@ -11,4 +11,10 @@ type ChatService interface {
 	Create(ctx context.Context, IDs models.IDs) (*int64, error)
 	Delete(ctx context.Context, chatID models.ChatID) error
 	SendMessage(ctx context.Context, message models.Message) error
+	AuthService
+}
+
+// AuthService интерфейс для обращения к auth сервису.
+type AuthService interface {
+	GetIDs(ctx context.Context, chatID models.Usernames) (models.IDs, error)
 }

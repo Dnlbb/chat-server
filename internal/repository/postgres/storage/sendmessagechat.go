@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Dnlbb/chat-server/internal/client/db"
 	"github.com/Dnlbb/chat-server/internal/models"
+	"github.com/Dnlbb/platform_common/pkg/db"
 )
 
 // SendMessageChat отправляем сообщение в определенный чат.

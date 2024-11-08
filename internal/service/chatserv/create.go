@@ -20,14 +20,14 @@ func (s service) Create(ctx context.Context, IDs models.IDs) (*int64, error) {
 
 		errTx = s.storage.Log(ctx, models.CREATE)
 		if errTx != nil {
-			return errTx
+			return fmt.Errorf("error logging create chat: %w", errTx)
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("error creating chat: %w", err)
+		return nil, err
 	}
 
 	return ChatID, nil

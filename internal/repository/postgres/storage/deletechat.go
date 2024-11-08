@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Dnlbb/chat-server/internal/client/db"
 	"github.com/Dnlbb/chat-server/internal/models"
+	"github.com/Dnlbb/platform_common/pkg/db"
 )
 
 // DeleteChat удаление чата по id из таблицы Chats

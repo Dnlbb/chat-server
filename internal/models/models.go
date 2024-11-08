@@ -39,4 +39,6 @@ type (
 		Body      string
 		Time      time.Time
 	}
+	// Usernames имена пользователей.
+	Usernames []string
 )

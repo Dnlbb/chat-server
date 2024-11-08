@@ -13,7 +13,7 @@ func (c *Controller) Delete(ctx context.Context, req *chatv1.DeleteRequest) (*em
 	chatID := toModelsChatID(req)
 
 	if err := c.chatService.Delete(ctx, chatID); err != nil {
-		return nil, fmt.Errorf("delete chat error: %w", err)
+		return &emptypb.Empty{}, fmt.Errorf("delete chat error: %w", err)
 	}
 
 	return &emptypb.Empty{}, nil

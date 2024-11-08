@@ -8,14 +8,14 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// toModelsChatID конвертация в сервисную модель ChatID.
+// toModelsChatID конвертация в бизнес модель ChatID.
 func toModelsChatID(req *chatv1.DeleteRequest) models.ChatID {
 	return models.ChatID{
 		ID: req.Id,
 	}
 }
 
-// toModelsMessage конвертация в сервисную модель Message.
+// toModelsMessage конвертация в бизнес модель Message.
 func toModelsMessage(req *chatv1.SendMessageRequest) *models.Message {
 	return &models.Message{
 		ChatID:    req.GetChatID(),
@@ -29,4 +29,9 @@ func toModelsMessage(req *chatv1.SendMessageRequest) *models.Message {
 // ToTimestampProto конвертация proto времени в обычный time.Time.
 func toTimestampTime(time *timestamppb.Timestamp) time.Time {
 	return time.AsTime()
+}
+
+func toUsernamesModels(req *chatv1.CreateRequest) models.Usernames {
+	usernames := append(models.Usernames{}, req.Usernames...)
+	return usernames
 }

@@ -6,15 +6,15 @@ import (
 
 	authv1 "github.com/Dnlbb/auth/pkg/auth_v1"
 	"github.com/Dnlbb/chat-server/internal/api/chat"
-	"github.com/Dnlbb/chat-server/internal/client/db"
-	"github.com/Dnlbb/chat-server/internal/client/db/pg"
-	"github.com/Dnlbb/chat-server/internal/client/db/transaction"
-	"github.com/Dnlbb/chat-server/internal/closer"
 	"github.com/Dnlbb/chat-server/internal/config"
 	"github.com/Dnlbb/chat-server/internal/repository/postgres/storage"
 	"github.com/Dnlbb/chat-server/internal/repository/repointerface"
 	"github.com/Dnlbb/chat-server/internal/service/chatserv"
 	"github.com/Dnlbb/chat-server/internal/service/servinterfaces"
+	"github.com/Dnlbb/platform_common/pkg/closer"
+	"github.com/Dnlbb/platform_common/pkg/db"
+	"github.com/Dnlbb/platform_common/pkg/db/pg"
+	"github.com/Dnlbb/platform_common/pkg/db/transaction"
 	"google.golang.org/grpc"
 )
 
@@ -107,6 +107,7 @@ func (s *serviceProvider) GetAuthService(ctx context.Context) servinterfaces.Cha
 	if s.chatService == nil {
 		s.chatService = chatserv.NewService(s.GetAuthRepository(ctx),
 			s.GetTxManager(ctx),
+			s.GetAuthClient(),
 		)
 	}
 
@@ -131,7 +132,7 @@ func (s *serviceProvider) GetAuthClient() authv1.AuthClient {
 func (s *serviceProvider) GetChatController(ctx context.Context) *chat.Controller {
 	if s.authController == nil {
 
-		s.authController = chat.NewController(s.GetAuthService(ctx), s.GetAuthClient())
+		s.authController = chat.NewController(s.GetAuthService(ctx))
 	}
 
 	return s.authController
