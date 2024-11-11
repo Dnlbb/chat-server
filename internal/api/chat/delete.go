@@ -10,7 +10,7 @@ import (
 
 // Delete конвертация в сервисную модель chatID, а потом передача управления в сервисный хэндлер.
 func (c *Controller) Delete(ctx context.Context, req *chatv1.DeleteRequest) (*emptypb.Empty, error) {
-	chatID := toModelsChatID(req)
+	chatID := toChatID(req)
 
 	if err := c.chatService.Delete(ctx, chatID); err != nil {
 		return &emptypb.Empty{}, fmt.Errorf("delete chat error: %w", err)

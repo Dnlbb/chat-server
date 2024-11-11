@@ -12,14 +12,7 @@ import (
 func (s *storage) Log(ctx context.Context, key models.LogKey) error {
 	query := sq.Insert("log").Columns("name")
 
-	switch key {
-	case models.CREATE:
-		query = query.Values(models.CREATE)
-	case models.DELETE:
-		query = query.Values(models.DELETE)
-	case models.SENDMESSAGE:
-		query = query.Values(models.SENDMESSAGE)
-	}
+	query = query.Values(key)
 
 	query = query.PlaceholderFormat(sq.Dollar)
 

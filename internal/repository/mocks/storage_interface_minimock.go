@@ -26,9 +26,9 @@ type StorageInterfaceMock struct {
 	beforeCreateChatCounter uint64
 	CreateChatMock          mStorageInterfaceMockCreateChat
 
-	funcDeleteChat          func(ctx context.Context, chatID models.ChatID) (err error)
+	funcDeleteChat          func(ctx context.Context, chatID models.Chat) (err error)
 	funcDeleteChatOrigin    string
-	inspectFuncDeleteChat   func(ctx context.Context, chatID models.ChatID)
+	inspectFuncDeleteChat   func(ctx context.Context, chatID models.Chat)
 	afterDeleteChatCounter  uint64
 	beforeDeleteChatCounter uint64
 	DeleteChatMock          mStorageInterfaceMockDeleteChat
@@ -443,13 +443,13 @@ type StorageInterfaceMockDeleteChatExpectation struct {
 // StorageInterfaceMockDeleteChatParams contains parameters of the StorageInterface.DeleteChat
 type StorageInterfaceMockDeleteChatParams struct {
 	ctx    context.Context
-	chatID models.ChatID
+	chatID models.Chat
 }
 
 // StorageInterfaceMockDeleteChatParamPtrs contains pointers to parameters of the StorageInterface.DeleteChat
 type StorageInterfaceMockDeleteChatParamPtrs struct {
 	ctx    *context.Context
-	chatID *models.ChatID
+	chatID *models.Chat
 }
 
 // StorageInterfaceMockDeleteChatResults contains results of the StorageInterface.DeleteChat
@@ -475,7 +475,7 @@ func (mmDeleteChat *mStorageInterfaceMockDeleteChat) Optional() *mStorageInterfa
 }
 
 // Expect sets up expected params for StorageInterface.DeleteChat
-func (mmDeleteChat *mStorageInterfaceMockDeleteChat) Expect(ctx context.Context, chatID models.ChatID) *mStorageInterfaceMockDeleteChat {
+func (mmDeleteChat *mStorageInterfaceMockDeleteChat) Expect(ctx context.Context, chatID models.Chat) *mStorageInterfaceMockDeleteChat {
 	if mmDeleteChat.mock.funcDeleteChat != nil {
 		mmDeleteChat.mock.t.Fatalf("StorageInterfaceMock.DeleteChat mock is already set by Set")
 	}
@@ -523,7 +523,7 @@ func (mmDeleteChat *mStorageInterfaceMockDeleteChat) ExpectCtxParam1(ctx context
 }
 
 // ExpectChatIDParam2 sets up expected param chatID for StorageInterface.DeleteChat
-func (mmDeleteChat *mStorageInterfaceMockDeleteChat) ExpectChatIDParam2(chatID models.ChatID) *mStorageInterfaceMockDeleteChat {
+func (mmDeleteChat *mStorageInterfaceMockDeleteChat) ExpectChatIDParam2(chatID models.Chat) *mStorageInterfaceMockDeleteChat {
 	if mmDeleteChat.mock.funcDeleteChat != nil {
 		mmDeleteChat.mock.t.Fatalf("StorageInterfaceMock.DeleteChat mock is already set by Set")
 	}
@@ -546,7 +546,7 @@ func (mmDeleteChat *mStorageInterfaceMockDeleteChat) ExpectChatIDParam2(chatID m
 }
 
 // Inspect accepts an inspector function that has same arguments as the StorageInterface.DeleteChat
-func (mmDeleteChat *mStorageInterfaceMockDeleteChat) Inspect(f func(ctx context.Context, chatID models.ChatID)) *mStorageInterfaceMockDeleteChat {
+func (mmDeleteChat *mStorageInterfaceMockDeleteChat) Inspect(f func(ctx context.Context, chatID models.Chat)) *mStorageInterfaceMockDeleteChat {
 	if mmDeleteChat.mock.inspectFuncDeleteChat != nil {
 		mmDeleteChat.mock.t.Fatalf("Inspect function is already set for StorageInterfaceMock.DeleteChat")
 	}
@@ -571,7 +571,7 @@ func (mmDeleteChat *mStorageInterfaceMockDeleteChat) Return(err error) *StorageI
 }
 
 // Set uses given function f to mock the StorageInterface.DeleteChat method
-func (mmDeleteChat *mStorageInterfaceMockDeleteChat) Set(f func(ctx context.Context, chatID models.ChatID) (err error)) *StorageInterfaceMock {
+func (mmDeleteChat *mStorageInterfaceMockDeleteChat) Set(f func(ctx context.Context, chatID models.Chat) (err error)) *StorageInterfaceMock {
 	if mmDeleteChat.defaultExpectation != nil {
 		mmDeleteChat.mock.t.Fatalf("Default expectation is already set for the StorageInterface.DeleteChat method")
 	}
@@ -587,7 +587,7 @@ func (mmDeleteChat *mStorageInterfaceMockDeleteChat) Set(f func(ctx context.Cont
 
 // When sets expectation for the StorageInterface.DeleteChat which will trigger the result defined by the following
 // Then helper
-func (mmDeleteChat *mStorageInterfaceMockDeleteChat) When(ctx context.Context, chatID models.ChatID) *StorageInterfaceMockDeleteChatExpectation {
+func (mmDeleteChat *mStorageInterfaceMockDeleteChat) When(ctx context.Context, chatID models.Chat) *StorageInterfaceMockDeleteChatExpectation {
 	if mmDeleteChat.mock.funcDeleteChat != nil {
 		mmDeleteChat.mock.t.Fatalf("StorageInterfaceMock.DeleteChat mock is already set by Set")
 	}
@@ -629,7 +629,7 @@ func (mmDeleteChat *mStorageInterfaceMockDeleteChat) invocationsDone() bool {
 }
 
 // DeleteChat implements mm_repointerface.StorageInterface
-func (mmDeleteChat *StorageInterfaceMock) DeleteChat(ctx context.Context, chatID models.ChatID) (err error) {
+func (mmDeleteChat *StorageInterfaceMock) DeleteChat(ctx context.Context, chatID models.Chat) (err error) {
 	mm_atomic.AddUint64(&mmDeleteChat.beforeDeleteChatCounter, 1)
 	defer mm_atomic.AddUint64(&mmDeleteChat.afterDeleteChatCounter, 1)
 

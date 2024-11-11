@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Dnlbb/chat-server/internal/api/chat"
+	chatapi "github.com/Dnlbb/chat-server/internal/api/chat"
 	"github.com/Dnlbb/chat-server/internal/models"
 	serviceMocks "github.com/Dnlbb/chat-server/internal/service/mocks"
 	"github.com/Dnlbb/chat-server/internal/service/servinterfaces"
@@ -27,8 +27,8 @@ func TestDelete(t *testing.T) {
 	)
 
 	var (
-		ID     = gofakeit.Int64()
-		chatID = models.ChatID{
+		ID   = gofakeit.Int64()
+		chat = models.Chat{
 			ID: ID,
 		}
 		ctx       = context.Background()
@@ -56,7 +56,7 @@ func TestDelete(t *testing.T) {
 			err:  nil,
 			chatServiceMock: func(mc *minimock.Controller) servinterfaces.ChatService {
 				mock := serviceMocks.NewChatServiceMock(mc)
-				mock.DeleteMock.Expect(ctx, chatID).Return(nil)
+				mock.DeleteMock.Expect(ctx, chat).Return(nil)
 				return mock
 			},
 		},
@@ -72,7 +72,7 @@ func TestDelete(t *testing.T) {
 			err:  fmt.Errorf("delete chat error: %w", errDelete),
 			chatServiceMock: func(mc *minimock.Controller) servinterfaces.ChatService {
 				mock := serviceMocks.NewChatServiceMock(mc)
-				mock.DeleteMock.Expect(ctx, chatID).Return(errDelete)
+				mock.DeleteMock.Expect(ctx, chat).Return(errDelete)
 				return mock
 			},
 		},
@@ -84,7 +84,7 @@ func TestDelete(t *testing.T) {
 			t.Parallel()
 
 			ChatServiceMock := tt.chatServiceMock(mc)
-			api := chat.NewController(ChatServiceMock)
+			api := chatapi.NewController(ChatServiceMock)
 
 			newID, err := api.Delete(tt.args.ctx, tt.args.req)
 			if tt.err != nil {

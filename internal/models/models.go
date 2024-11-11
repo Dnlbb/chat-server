@@ -16,13 +16,13 @@ const (
 
 type (
 	// IDs id пользователей для создания чата.
-	IDs []int64
+	IDs []ID
 
 	// ID id пользователя.
 	ID int64
 
-	// ChatID id чата.
-	ChatID struct {
+	// Chat id чата.
+	Chat struct {
 		ID int64 `json:"id"`
 	}
 

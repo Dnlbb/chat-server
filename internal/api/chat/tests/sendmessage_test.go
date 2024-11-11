@@ -58,11 +58,11 @@ func TestSendMessage(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &chatv1.SendMessageRequest{
-					ChatID:    ID,
-					FromUname: uname,
-					FromUid:   UID,
-					Body:      body,
-					Time:      timestamppb.New(time),
+					ChatID:       ID,
+					FromUserName: uname,
+					FromUserID:   UID,
+					Body:         body,
+					Time:         timestamppb.New(time),
 				},
 			},
 			want: &emptypb.Empty{},
@@ -78,11 +78,11 @@ func TestSendMessage(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &chatv1.SendMessageRequest{
-					ChatID:    ID,
-					FromUname: uname,
-					FromUid:   UID,
-					Body:      body,
-					Time:      timestamppb.New(time),
+					ChatID:       ID,
+					FromUserName: uname,
+					FromUserID:   UID,
+					Body:         body,
+					Time:         timestamppb.New(time),
 				},
 			},
 			want: &emptypb.Empty{},

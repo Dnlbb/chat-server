@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/Dnlbb/chat-server/internal/api/chat"
-	"github.com/Dnlbb/chat-server/internal/models"
 	serviceMocks "github.com/Dnlbb/chat-server/internal/service/mocks"
 	"github.com/Dnlbb/chat-server/internal/service/servinterfaces"
 	chatv1 "github.com/Dnlbb/chat-server/pkg/chat_v1"
@@ -27,11 +26,9 @@ func TestCreate(t *testing.T) {
 
 	var (
 		usernames   = []string{"Ivan, Vitya, Petya"}
-		IDs         = models.IDs{1, 2, 3}
 		id          = gofakeit.Int64()
 		ctx         = context.Background()
 		mc          = minimock.NewController(t)
-		errorGetIDs = errors.New("error getting IDs")
 		errorCreate = errors.New("error creating chat")
 		res         = &chatv1.CreateResponse{
 			Id: id,
@@ -58,24 +55,7 @@ func TestCreate(t *testing.T) {
 			err:  nil,
 			chatServiceMock: func(mc *minimock.Controller) servinterfaces.ChatService {
 				mock := serviceMocks.NewChatServiceMock(mc)
-				mock.GetIDsMock.Expect(ctx, usernames).Return(IDs, nil)
-				mock.CreateMock.Expect(ctx, IDs).Return(&id, nil)
-				return mock
-			},
-		},
-		{
-			name: "error case: error with GetIDs",
-			args: args{
-				ctx: ctx,
-				req: &chatv1.CreateRequest{
-					Usernames: usernames,
-				},
-			},
-			want: nil,
-			err:  fmt.Errorf("error with get IDs: %w", errorGetIDs),
-			chatServiceMock: func(mc *minimock.Controller) servinterfaces.ChatService {
-				mock := serviceMocks.NewChatServiceMock(mc)
-				mock.GetIDsMock.Expect(ctx, usernames).Return(nil, errorGetIDs)
+				mock.CreateMock.Expect(ctx, usernames).Return(&id, nil)
 				return mock
 			},
 		},
@@ -91,8 +71,7 @@ func TestCreate(t *testing.T) {
 			err:  fmt.Errorf("error when trying to create a chat: %w", errorCreate),
 			chatServiceMock: func(mc *minimock.Controller) servinterfaces.ChatService {
 				mock := serviceMocks.NewChatServiceMock(mc)
-				mock.GetIDsMock.Expect(ctx, usernames).Return(IDs, nil)
-				mock.CreateMock.Expect(ctx, IDs).Return(nil, errorCreate)
+				mock.CreateMock.Expect(ctx, usernames).Return(nil, errorCreate)
 				return mock
 			},
 		},
