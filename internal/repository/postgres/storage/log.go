@@ -4,22 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Dnlbb/chat-server/internal/client/db"
 	"github.com/Dnlbb/chat-server/internal/models"
+	"github.com/Dnlbb/platform_common/pkg/db"
 	sq "github.com/Masterminds/squirrel"
 )
 
 func (s *storage) Log(ctx context.Context, key models.LogKey) error {
 	query := sq.Insert("log").Columns("name")
 
-	switch key {
-	case models.CREATE:
-		query = query.Values(models.CREATE)
-	case models.DELETE:
-		query = query.Values(models.DELETE)
-	case models.SENDMESSAGE:
-		query = query.Values(models.SENDMESSAGE)
-	}
+	query = query.Values(key)
 
 	query = query.PlaceholderFormat(sq.Dollar)
 

@@ -3,10 +3,9 @@ package storage
 import (
 	"context"
 	"fmt"
-	"log"
 
-	"github.com/Dnlbb/chat-server/internal/client/db"
 	"github.com/Dnlbb/chat-server/internal/models"
+	"github.com/Dnlbb/platform_common/pkg/db"
 )
 
 // SendMessageChat отправляем сообщение в определенный чат.
@@ -34,7 +33,7 @@ func (s *storage) SendMessageChat(ctx context.Context, message models.Message) e
 
 	_, err := s.db.DB().ExecContext(ctx, q, message.ChatID, message.FromUID, message.Body, message.Time)
 	if err != nil {
-		log.Println("Ошибка при отправке запроса на добавление сообщения в таблицу Messages")
+		return fmt.Errorf("error when sending a request to add a message to the Messages table: %w", err)
 	}
 
 	return nil

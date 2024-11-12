@@ -1,8 +1,8 @@
 package storage
 
 import (
-	"github.com/Dnlbb/chat-server/internal/client/db"
 	"github.com/Dnlbb/chat-server/internal/repository/repointerface"
+	"github.com/Dnlbb/platform_common/pkg/db"
 )
 
 type storage struct {

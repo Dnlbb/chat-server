@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Dnlbb/chat-server/internal/client/db"
 	"github.com/Dnlbb/chat-server/internal/models"
+	"github.com/Dnlbb/platform_common/pkg/db"
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -14,21 +14,21 @@ import (
 // существует, данный пользователь не будет добавлен и мы перейдем к следующему. Связь пользователей и чатов осуществляется через таблицу
 // ChatUsers связью многие ко многим.
 func (s *storage) CreateChat(ctx context.Context, IDs models.IDs) (*int64, error) {
-	var chatID models.ChatID
+	var chat models.Chat
 
 	q := db.Query{
 		Name:     "Get chatID",
 		QueryRow: "INSERT INTO chat_service.chats DEFAULT VALUES RETURNING id",
 	}
 
-	if err := s.db.DB().ScanOneContext(ctx, &chatID.ID, q); err != nil {
+	if err := s.db.DB().ScanOneContext(ctx, &chat.ID, q); err != nil {
 		return nil, fmt.Errorf("error when creating a chat record in the Chats table: %w", err)
 	}
 
 	queryBuilder := sq.Insert("chat_service.chat2users").Columns("chat_id", "user_id")
 
 	for _, userID := range IDs {
-		queryBuilder = queryBuilder.Values(chatID.ID, userID)
+		queryBuilder = queryBuilder.Values(chat.ID, userID)
 	}
 
 	queryBuilder = queryBuilder.PlaceholderFormat(sq.Dollar)
@@ -48,5 +48,5 @@ func (s *storage) CreateChat(ctx context.Context, IDs models.IDs) (*int64, error
 		return nil, fmt.Errorf("error when executing the request: %w", err)
 	}
 
-	return &chatID.ID, err
+	return &chat.ID, err
 }

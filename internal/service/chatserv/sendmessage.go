@@ -15,15 +15,15 @@ func (s service) SendMessage(ctx context.Context, message models.Message) error 
 			return fmt.Errorf("error while send message chat: %w", errTx)
 		}
 
-		if errTx = s.storage.Log(ctx, models.DELETE); errTx != nil {
-			return errTx
+		if errTx = s.storage.Log(ctx, models.SENDMESSAGE); errTx != nil {
+			return fmt.Errorf("error log: %w", errTx)
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		return fmt.Errorf("sendMessage error: %w", err)
+		return err
 	}
 
 	return nil

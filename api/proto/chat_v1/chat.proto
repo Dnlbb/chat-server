@@ -31,8 +31,8 @@ message DeleteRequest {
 
 message SendMessageRequest {
     int64 chatID = 1;
-    string fromUname = 2;
-    int64 fromUid = 3;
+    string fromUserName = 2;
+    int64 fromUserID = 3;
     string body = 4;
     google.protobuf.Timestamp time = 5;
 }

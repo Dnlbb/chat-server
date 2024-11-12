@@ -6,15 +6,16 @@ import (
 
 	authv1 "github.com/Dnlbb/auth/pkg/auth_v1"
 	"github.com/Dnlbb/chat-server/internal/api/chat"
-	"github.com/Dnlbb/chat-server/internal/client/db"
-	"github.com/Dnlbb/chat-server/internal/client/db/pg"
-	"github.com/Dnlbb/chat-server/internal/client/db/transaction"
-	"github.com/Dnlbb/chat-server/internal/closer"
 	"github.com/Dnlbb/chat-server/internal/config"
+	"github.com/Dnlbb/chat-server/internal/repository/authrepo"
 	"github.com/Dnlbb/chat-server/internal/repository/postgres/storage"
 	"github.com/Dnlbb/chat-server/internal/repository/repointerface"
 	"github.com/Dnlbb/chat-server/internal/service/chatserv"
 	"github.com/Dnlbb/chat-server/internal/service/servinterfaces"
+	"github.com/Dnlbb/platform_common/pkg/closer"
+	"github.com/Dnlbb/platform_common/pkg/db"
+	"github.com/Dnlbb/platform_common/pkg/db/pg"
+	"github.com/Dnlbb/platform_common/pkg/db/transaction"
 	"google.golang.org/grpc"
 )
 
@@ -25,6 +26,7 @@ type serviceProvider struct {
 	dbClient       db.Client
 	txManager      db.TxManager
 	chatRepository repointerface.StorageInterface
+	authRepository repointerface.AuthInterface
 
 	chatService servinterfaces.ChatService
 	authClient  authv1.AuthClient
@@ -93,8 +95,8 @@ func (s *serviceProvider) GetTxManager(ctx context.Context) db.TxManager {
 	return s.txManager
 }
 
-// GetAuthRepository инициализация хранилища.
-func (s *serviceProvider) GetAuthRepository(ctx context.Context) repointerface.StorageInterface {
+// GetChatRepository инициализация хранилища.
+func (s *serviceProvider) GetChatRepository(ctx context.Context) repointerface.StorageInterface {
 	if s.chatRepository == nil {
 		s.chatRepository = storage.NewPostgresRepo(s.GetDBClient(ctx))
 	}
@@ -102,11 +104,20 @@ func (s *serviceProvider) GetAuthRepository(ctx context.Context) repointerface.S
 	return s.chatRepository
 }
 
+func (s *serviceProvider) GetAuthRepository(_ context.Context) repointerface.AuthInterface {
+	if s.authRepository == nil {
+		s.authRepository = authrepo.NewAuthRepo(s.GetAuthClient())
+	}
+
+	return s.authRepository
+}
+
 // GetAuthService инициализация сервиса авторизации.
 func (s *serviceProvider) GetAuthService(ctx context.Context) servinterfaces.ChatService {
 	if s.chatService == nil {
-		s.chatService = chatserv.NewService(s.GetAuthRepository(ctx),
+		s.chatService = chatserv.NewService(s.GetChatRepository(ctx),
 			s.GetTxManager(ctx),
+			s.GetAuthRepository(ctx),
 		)
 	}
 
@@ -131,7 +142,7 @@ func (s *serviceProvider) GetAuthClient() authv1.AuthClient {
 func (s *serviceProvider) GetChatController(ctx context.Context) *chat.Controller {
 	if s.authController == nil {
 
-		s.authController = chat.NewController(s.GetAuthService(ctx), s.GetAuthClient())
+		s.authController = chat.NewController(s.GetAuthService(ctx))
 	}
 
 	return s.authController

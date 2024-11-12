@@ -5,3 +5,5 @@
 .idea/
 
 chat.env
+/coverage/coverage.out
+/coverage/coverage.html

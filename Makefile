@@ -5,6 +5,9 @@ LOCAL_BIN:=$(CURDIR)/bin
 GOOSE_CMD=${LOCAL_BIN}/goose
 
 
+install-minimock:
+	GOBIN=${LOCAL_BIN} go install github.com/gojuno/minimock/v3/cmd/minimock@v3.4.1
+
 install-golangci-lint:
 	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
@@ -68,3 +71,22 @@ docker-up:
 
 docker-down:
 	docker compose -f ./deploy/docker-compose.yaml down
+
+
+
+test:
+	go clean -testcache
+	go test ./... -covermode count -coverpkg=github.com/Dnlbb/chat-server/internal/service/chatserv/...,github.com/Dnlbb/chat-server/internal/api/chat... -count 5
+
+
+test-coverage:
+	go clean -testcache
+	go test ./... -coverprofile=coverage.tmp.out -covermode count -coverpkg=github.com/Dnlbb/chat-server/internal/service/chatserv/...,github.com/Dnlbb/chat-server/internal/api/chat... -count 5
+	rm -rf coverage
+	mkdir -p coverage
+	grep -v 'mocks\|config' coverage.tmp.out > coverage/coverage.out
+	rm coverage.tmp.out
+	go tool cover -html=coverage/coverage.out -o coverage/coverage.html;
+	go tool cover -func=./coverage/coverage.out | grep "total";
+	grep -sqFx "/coverage/coverage.out" .gitignore || echo "/coverage/coverage.out" >> .gitignore
+	grep -sqFx "/coverage/coverage.html" .gitignore || echo "/coverage/coverage.html" >> .gitignore
