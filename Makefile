@@ -18,12 +18,15 @@ lint:
 
 
 install-deps:
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1 && \
-	go install -mod=mod google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
-	@[ -f ${LOCAL_BIN}/goose ] || { \
-      		echo "Installing goose..."; \
-      		GOBIN=${LOCAL_BIN} go install github.com/pressly/goose/v3/cmd/goose@v3.14.0; \
-      }
+	@[ -f $(LOCAL_BIN)/minimock ] 			 	 || GOBIN=$(LOCAL_BIN) go install github.com/gojuno/minimock/v3/cmd/minimock@latest
+	@[ -f $(LOCAL_BIN)/protoc-gen-go ] 			 || GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1
+	@[ -f $(LOCAL_BIN)/protoc-gen-go-grpc ]      || GOBIN=$(LOCAL_BIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
+	@[ -f $(LOCAL_BIN)/goose ]                   || GOBIN=$(LOCAL_BIN) go install github.com/pressly/goose/v3/cmd/goose@v3.14.0
+	@[ -f $(LOCAL_BIN)/protoc-gen-validate ]     || GOBIN=$(LOCAL_BIN) go install github.com/envoyproxy/protoc-gen-validate@v1.0.4
+	@[ -f $(LOCAL_BIN)/protoc-gen-grpc-gateway ] || GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.20.0
+	@[ -f $(LOCAL_BIN)/protoc-gen-openapiv2 ] || GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.15.2
+	@[ -f $(LOCAL_BIN)/statik ] || GOBIN=$(LOCAL_BIN) go install github.com/rakyll/statik@v0.1.7
+
 
 
 get-deps:
@@ -32,16 +35,24 @@ get-deps:
 
 
 generate:
+	mkdir -p pkg/swagger
 	make generate-api
+	$(LOCAL_BIN)/statik -src=pkg/swagger/ -include='*.css,*.html,*.js,*.json,*.png'
 
 
 generate-api:
 	mkdir -p pkg/chat_v1
-	protoc --proto_path=./api/proto/chat_v1 \
+	protoc --proto_path=./api/proto/chat_v1 --proto_path vendor.protogen \
 	--go_out=pkg/chat_v1 --go_opt=paths=source_relative \
 	--plugin=protoc-gen-go=bin/protoc-gen-go \
 	--go-grpc_out=pkg/chat_v1 --go-grpc_opt=paths=source_relative \
 	--plugin=protoc-gen-go-grpc=bin/protoc-gen-go-grpc \
+	--grpc-gateway_out=pkg/chat_v1 --grpc-gateway_opt=paths=source_relative \
+    --plugin=protoc-gen-grpc-gateway=bin/protoc-gen-grpc-gateway \
+    --validate_out lang=go:pkg/chat_v1 --validate_opt=paths=source_relative \
+    --plugin=protoc-gen-validate=bin/protoc-gen-validate \
+    --openapiv2_out=allow_merge=true,merge_file_name=api:pkg/swagger \
+    --plugin=protoc-gen-openapiv2=bin/protoc-gen-openapiv2 \
 	./api/proto/chat_v1/chat.proto
 
 
@@ -90,3 +101,24 @@ test-coverage:
 	go tool cover -func=./coverage/coverage.out | grep "total";
 	grep -sqFx "/coverage/coverage.out" .gitignore || echo "/coverage/coverage.out" >> .gitignore
 	grep -sqFx "/coverage/coverage.html" .gitignore || echo "/coverage/coverage.html" >> .gitignore
+
+
+vendor-proto:
+		@if [ ! -d vendor.protogen/validate ]; then \
+			mkdir -p vendor.protogen/validate &&\
+			git clone https://github.com/envoyproxy/protoc-gen-validate vendor.protogen/protoc-gen-validate &&\
+			mv vendor.protogen/protoc-gen-validate/validate/*.proto vendor.protogen/validate &&\
+			rm -rf vendor.protogen/protoc-gen-validate ;\
+		fi
+		@if [ ! -d vendor.protogen/google ]; then \
+			git clone https://github.com/googleapis/googleapis vendor.protogen/googleapis &&\
+			mkdir -p  vendor.protogen/google/ &&\
+			mv vendor.protogen/googleapis/google/api vendor.protogen/google &&\
+			rm -rf vendor.protogen/googleapis ;\
+		fi
+		@if [ ! -d vendor.protogen/protoc-gen-openapiv2 ]; then \
+        	mkdir -p vendor.protogen/protoc-gen-openapiv2/options &&\
+        	git clone https://github.com/grpc-ecosystem/grpc-gateway vendor.protogen/openapiv2 &&\
+        	mv vendor.protogen/openapiv2/protoc-gen-openapiv2/options/*.proto vendor.protogen/protoc-gen-openapiv2/options &&\
+        	rm -rf vendor.protogen/openapiv2 ;\
+        fi
