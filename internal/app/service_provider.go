@@ -20,8 +20,10 @@ import (
 )
 
 type serviceProvider struct {
-	pgConfig   config.PGConfig
-	grpcConfig config.GRPCConfig
+	pgConfig      config.PGConfig
+	grpcConfig    config.GRPCConfig
+	httpConfig    config.HTTPConfig
+	swaggerConfig config.SwaggerConf
 
 	dbClient       db.Client
 	txManager      db.TxManager
@@ -64,6 +66,32 @@ func (s *serviceProvider) GetGRPCConfig() config.GRPCConfig {
 	}
 
 	return s.grpcConfig
+}
+
+func (s *serviceProvider) GetHTTPConfig() config.HTTPConfig {
+	if s.httpConfig == nil {
+		cfg, err := config.NewHTTPConfig()
+		if err != nil {
+			log.Fatal("failed to load http config: %w", err)
+		}
+
+		s.httpConfig = cfg
+	}
+
+	return s.httpConfig
+}
+
+func (s *serviceProvider) GetSwaggerConfig() config.SwaggerConf {
+	if s.swaggerConfig == nil {
+		cfg, err := config.NewSwaggerServerConf()
+		if err != nil {
+			log.Fatal("failed to load swagger config: %w", err)
+		}
+
+		s.swaggerConfig = cfg
+	}
+
+	return s.swaggerConfig
 }
 
 // GetDBClient инициализируем клиента к базе данных.

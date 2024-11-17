@@ -5,20 +5,55 @@ package api;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/Dnlbb/auth/pkg/chat;chat";
 
 
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+        title: "Chat API"
+        version: "1.0.0"
+        contact: {
+            name: "Daniil"
+        };
+    };
+
+    host:"localhost:8088",
+    schemes:HTTP,
+    consumes:"application/json",
+    produces:"application/json",
+};
+
 service chat {
-    rpc Create (CreateRequest) returns (CreateResponse);
-    rpc Delete (DeleteRequest) returns (google.protobuf.Empty);
-    rpc SendMessage (SendMessageRequest) returns (google.protobuf.Empty);
+    rpc Create (CreateRequest) returns (CreateResponse) {
+        option (google.api.http) = {
+            post: "/chat/create"
+            body: "*"
+        };
+    };
+
+    rpc Delete (DeleteRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/chat/delete"
+            body: "*"
+        };
+    };
+
+    rpc SendMessage (SendMessageRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/chat/send_message"
+            body: "*"
+        };
+    };
 }
 
 
 
 message CreateRequest {
-    repeated string usernames = 1;
+    repeated string usernames = 1 [(validate.rules).repeated = {min_items: 1, max_items: 10}, (validate.rules).repeated.unique = true] ;
 }
 
 message CreateResponse {
@@ -31,9 +66,9 @@ message DeleteRequest {
 
 message SendMessageRequest {
     int64 chatID = 1;
-    string fromUserName = 2;
+    string fromUserName = 2 [(validate.rules).string = {min_len: 1, max_len: 255}];
     int64 fromUserID = 3;
-    string body = 4;
+    string body = 4 [(validate.rules).string = {min_len: 1, max_len: 555}];
     google.protobuf.Timestamp time = 5;
 }
 
