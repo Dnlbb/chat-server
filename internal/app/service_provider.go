@@ -4,12 +4,16 @@ import (
 	"context"
 	"log"
 
-	authv1 "github.com/Dnlbb/auth/pkg/auth_v1"
+	"github.com/Dnlbb/auth/pkg/auth_v1"
+	userv1 "github.com/Dnlbb/auth/pkg/user_v1"
 	"github.com/Dnlbb/chat-server/internal/api/chat"
 	"github.com/Dnlbb/chat-server/internal/config"
+	accessInterceptor "github.com/Dnlbb/chat-server/internal/interceptor/access"
+	accessRepo "github.com/Dnlbb/chat-server/internal/repository/access"
 	"github.com/Dnlbb/chat-server/internal/repository/authrepo"
 	"github.com/Dnlbb/chat-server/internal/repository/postgres/storage"
 	"github.com/Dnlbb/chat-server/internal/repository/repointerface"
+	"github.com/Dnlbb/chat-server/internal/service/access"
 	"github.com/Dnlbb/chat-server/internal/service/chatserv"
 	"github.com/Dnlbb/chat-server/internal/service/servinterfaces"
 	"github.com/Dnlbb/platform_common/pkg/closer"
@@ -25,15 +29,20 @@ type serviceProvider struct {
 	httpConfig    config.HTTPConfig
 	swaggerConfig config.SwaggerConf
 
-	dbClient       db.Client
-	txManager      db.TxManager
-	chatRepository repointerface.StorageInterface
-	authRepository repointerface.AuthInterface
+	dbClient  db.Client
+	txManager db.TxManager
 
-	chatService servinterfaces.ChatService
-	authClient  authv1.AuthClient
+	chatRepository   repointerface.StorageInterface
+	authRepository   repointerface.AuthInterface
+	accessRepository repointerface.Access
+	userClient       userv1.UserApiClient
+	authClient       auth_v1.AuthClient
 
-	authController *chat.Controller
+	chatService   servinterfaces.ChatService
+	accessService servinterfaces.Access
+
+	authController  *chat.Controller
+	authInterceptor *accessInterceptor.AuthInterceptor
 }
 
 func newServiceProvider() *serviceProvider {
@@ -134,10 +143,18 @@ func (s *serviceProvider) GetChatRepository(ctx context.Context) repointerface.S
 
 func (s *serviceProvider) GetAuthRepository(_ context.Context) repointerface.AuthInterface {
 	if s.authRepository == nil {
-		s.authRepository = authrepo.NewAuthRepo(s.GetAuthClient())
+		s.authRepository = authrepo.NewAuthRepo(s.GetUserClient())
 	}
 
 	return s.authRepository
+}
+
+func (s *serviceProvider) GetAccessRepository(_ context.Context) repointerface.Access {
+	if s.accessRepository == nil {
+		s.accessRepository = accessRepo.NewAccessRepo(s.GetAuthClient())
+	}
+
+	return s.accessRepository
 }
 
 // GetAuthService инициализация сервиса авторизации.
@@ -152,7 +169,29 @@ func (s *serviceProvider) GetAuthService(ctx context.Context) servinterfaces.Cha
 	return s.chatService
 }
 
-func (s *serviceProvider) GetAuthClient() authv1.AuthClient {
+func (s *serviceProvider) GetAccessService(ctx context.Context) servinterfaces.Access {
+	if s.accessService == nil {
+		s.accessService = access.NewAccessService(s.GetAccessRepository(ctx))
+	}
+
+	return s.accessService
+}
+
+func (s *serviceProvider) GetUserClient() userv1.UserApiClient {
+	if s.userClient == nil {
+		conn, err := grpc.Dial("localhost:50052", grpc.WithInsecure())
+		if err != nil {
+			log.Fatalf("did not connect: %v", err)
+		}
+		closer.Add(conn.Close)
+
+		s.userClient = userv1.NewUserApiClient(conn)
+	}
+
+	return s.userClient
+}
+
+func (s *serviceProvider) GetAuthClient() auth_v1.AuthClient {
 	if s.authClient == nil {
 		conn, err := grpc.Dial("localhost:50052", grpc.WithInsecure())
 		if err != nil {
@@ -160,7 +199,7 @@ func (s *serviceProvider) GetAuthClient() authv1.AuthClient {
 		}
 		closer.Add(conn.Close)
 
-		s.authClient = authv1.NewAuthClient(conn)
+		s.authClient = auth_v1.NewAuthClient(conn)
 	}
 
 	return s.authClient
@@ -169,9 +208,16 @@ func (s *serviceProvider) GetAuthClient() authv1.AuthClient {
 // GetChatController инициализация контроллера.
 func (s *serviceProvider) GetChatController(ctx context.Context) *chat.Controller {
 	if s.authController == nil {
-
 		s.authController = chat.NewController(s.GetAuthService(ctx))
 	}
 
 	return s.authController
+}
+
+func (s *serviceProvider) GetAuthInterceptor(ctx context.Context) accessInterceptor.AuthInterceptor {
+	if s.authInterceptor == nil {
+		s.authInterceptor = accessInterceptor.NewAuthInterceptor(s.GetAccessService(ctx))
+	}
+
+	return *s.authInterceptor
 }
