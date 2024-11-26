@@ -3,7 +3,7 @@ module github.com/Dnlbb/chat-server
 go 1.22.5
 
 require (
-	github.com/Dnlbb/auth v0.0.0-20241015204829-7b1556231b70
+	github.com/Dnlbb/auth v0.0.0-20241123185353-e5461bcac8db
 	github.com/Dnlbb/platform_common v0.0.0-20241104122631-d7f17ae48ff2
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/brianvoe/gofakeit/v6 v6.28.0
@@ -14,7 +14,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rakyll/statik v0.1.7
 	github.com/rs/cors v1.11.1
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20241021214115-324edc3d5d38
 	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.35.1

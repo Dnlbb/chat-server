@@ -18,3 +18,8 @@ type StorageInterface interface {
 type AuthInterface interface {
 	GetIDs(ctx context.Context, usernames models.Usernames) ([]models.ID, error)
 }
+
+// Access интерфейс для проверки доступа.
+type Access interface {
+	Access(ctx context.Context, path string) error
+}

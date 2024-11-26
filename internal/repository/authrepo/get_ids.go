@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	authv1 "github.com/Dnlbb/auth/pkg/auth_v1"
+	authv1 "github.com/Dnlbb/auth/pkg/user_v1"
 	"github.com/Dnlbb/chat-server/internal/models"
 )
 
