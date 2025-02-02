@@ -12,3 +12,8 @@ type ChatService interface {
 	Delete(ctx context.Context, chat models.Chat) error
 	SendMessage(ctx context.Context, message models.Message) error
 }
+
+// Access интерфейс реализующий проверку.
+type Access interface {
+	Access(ctx context.Context, path string) error
+}
